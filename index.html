@@ -10,17 +10,19 @@
 <body>
 <div id="game">
 <canvas id="gameCanvas"></canvas>
-<div class="hud top"><div><h1>SHADOWLINE HUNTER</h1><p>MISSION 01 · THE FOG-CHOKED VICTORIAN QUARTER</p></div><div class="objective"><span>OBJECTIVE</span><strong>LOCATE THE MISSING AGENT</strong></div></div>
+<div class="hud top"><div><h1>SHADOWLINE HUNTER</h1><p>MISSION 01 · THE FOG-CHOKED VICTORIAN QUARTER</p></div><div class="objective"><span>OBJECTIVE</span><strong id="objective">LOCATE THE MISSING AGENT</strong></div></div>
 <div class="hud left-panel">
 <div class="card"><span>HUNTER</span><strong>SHADOW-01</strong></div>
 <div class="card"><span>HEALTH</span><div class="bar"><b id="healthBar"></b></div><strong id="health">100</strong></div>
 <div class="card"><span>STAMINA</span><div class="bar"><b id="staminaBar"></b></div><strong id="stamina">100</strong></div>
 <div class="card"><span>LIGHT</span><strong id="light">UV READY</strong></div>
+<div class="card"><span>DETECTION</span><strong id="detection">CLEAR</strong></div>
 </div>
 <div class="weapon-panel hud"><span>PRIMARY</span><h2>VIGIL CARBINE</h2><p>FICTIONAL TACTICAL PLATFORM</p><div class="ammo"><strong id="ammo">30</strong><small>/ 120</small></div><button id="reload">RELOAD</button></div>
 <div class="crosshair"><i></i><i></i><i></i><i></i></div>
 <div id="prompt">CLICK TO ENTER THE QUARTER</div>
 <div class="hud bottom"><div><span>AREA</span><strong>FOG-CHOKED QUARTER</strong></div><div><span>THREATS</span><strong id="threats">3 DETECTED</strong></div><div><span>XP</span><strong id="xp">0</strong></div><button id="reset">RESET MISSION</button></div>
+<div id="missionComplete" class="mission-complete" hidden><div><span>MISSION 01</span><h2>MISSION COMPLETE</h2><p>THE MISSING AGENT HAS BEEN LOCATED.</p><button id="continueMission">CONTINUE</button></div></div>
 </div>
 <script src="script.js"></script>
 </body>
