@@ -1,82 +1,111 @@
-// Shadowline Hunter — large connected story-world layer
+// Shadowline Hunter — safe large connected story-world layer
 // Environment and exploration only. No combat changes.
+// This version uses lightweight landmark geometry so the existing game remains stable.
 
 (() => {
   if (typeof scene === 'undefined' || typeof THREE === 'undefined') return;
+  if (window.ShadowlineLargeWorldLoaded) return;
+  window.ShadowlineLargeWorldLoaded = true;
 
   const world = new THREE.Group();
   world.name = 'ShadowlineLargeWorld';
   scene.add(world);
 
-  const mat = (color, roughness = .9) => new THREE.MeshStandardMaterial({ color, roughness });
-  const stone = mat(0x303139, .96);
-  const darkStone = mat(0x1d2027, .98);
-  const roof = mat(0x15171d, .92);
-  const road = mat(0x292b30, 1);
-  const glass = new THREE.MeshStandardMaterial({ color:0x162331, roughness:.28, metalness:.1 });
+  const makeMat = (color, roughness = .92) =>
+    new THREE.MeshStandardMaterial({ color, roughness });
 
-  function block(x,y,z,w,h,d,material) {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);
-    m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; world.add(m); return m;
+  const stone = makeMat(0x303139);
+  const darkStone = makeMat(0x1d2027);
+  const roof = makeMat(0x15171d);
+  const road = makeMat(0x292b30);
+  const glass = new THREE.MeshStandardMaterial({
+    color: 0x162331,
+    roughness: .35,
+    metalness: .05
+  });
+
+  function box(x, y, z, w, h, d, material, shadows = true) {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(w, h, d),
+      material
+    );
+    mesh.position.set(x, y, z);
+    mesh.castShadow = shadows;
+    mesh.receiveShadow = shadows;
+    world.add(mesh);
+    return mesh;
   }
 
-  function district(x,z,w,d,label) {
-    block(x,.05,z,w,.1,d,road);
-    block(x,5,z-d/2,w,10,.7,stone);
-    block(x,5,z+d/2,w,10,.7,stone);
-    block(x-w/2,5,z,.7,10,d,stone);
-    block(x+w/2,5,z,.7,10,d,stone);
+  function landmark(x, z, w, h, d) {
+    box(x, h / 2, z, w, h, d, darkStone);
+    box(x, h + 0.15, z, w * .72, .3, d * .72, roof);
+  }
 
-    for(let px=x-w/2+3; px<x+w/2-2; px+=4){
-      for(const side of [-1,1]){
-        const window=block(px,4.8,z+side*(d/2+.38),1.35,1.7,.08,glass);
-        window.material.emissive=new THREE.Color(0x05080d);
+  function district(x, z, w, d) {
+    // Low boundary walls instead of enclosing the player.
+    box(x, .35, z - d / 2, w, .7, .6, stone);
+    box(x, .35, z + d / 2, w, .7, .6, stone);
+    box(x - w / 2, .35, z, .6, .7, d, stone);
+    box(x + w / 2, .35, z, .6, .7, d, stone);
+
+    // Sparse static windows for visual scale.
+    for (let px = x - w / 2 + 5; px < x + w / 2 - 3; px += 10) {
+      for (const side of [-1, 1]) {
+        const window = box(px, 3.2, z + side * (d / 2 + .34), 1.8, 1.5, .08, glass, false);
+        window.material.emissive = new THREE.Color(0x020408);
       }
     }
   }
 
-  // A large, static connected map. Districts overlap through roads and gates.
-  district(-55,-45,70,70,'Victorian Quarter');
-  district(35,-55,75,75,'Cathedral District');
-  district(-48,55,75,70,'Old Cemetery District');
-  district(48,55,80,70,'Manor District');
-  district(-55,150,85,75,'Underground Entrance District');
-  district(45,155,90,80,'Forgotten Docks');
-  district(-50,255,90,85,'Highland Ruins');
-  district(55,260,100,90,'Ancient Valley');
-  district(0,375,150,100,'Outer Kingdom');
-  district(0,510,170,105,'Final Shadowline');
+  // Ten connected regions, kept lightweight and open for traversal.
+  district(-55, -45, 70, 70);
+  district(35, -55, 75, 75);
+  district(-48, 55, 75, 70);
+  district(48, 55, 80, 70);
+  district(-55, 150, 85, 75);
+  district(45, 155, 90, 80);
+  district(-50, 255, 90, 85);
+  district(55, 260, 100, 90);
+  district(0, 375, 150, 100);
+  district(0, 510, 170, 105);
 
-  // Long connecting roads.
-  for(const z of [-5,105,205,315,440,570]) block(0,.02,z,18,.05,75,road);
-  for(const x of [-105,0,105]) block(x,.025,250,80,.05,16,road);
-
-  // Large landmark silhouettes for navigation.
-  block(-55,12,-45,18,24,18,darkStone);
-  block(35,18,-55,26,36,22,darkStone);
-  block(48,20,55,28,40,24,darkStone);
-  block(-50,16,255,24,32,24,darkStone);
-  block(55,22,260,30,44,26,darkStone);
-  block(0,25,510,40,50,32,darkStone);
-
-  // Static gates between major regions.
-  for(const z of [45,105,205,315,440]){
-    block(0,4,z,22,8,.6,roof);
-    block(-11,5,z,.8,10,.8,stone);
-    block(11,5,z,.8,10,.8,stone);
+  // Main travel corridors.
+  for (const z of [0, 105, 205, 315, 440, 565]) {
+    box(0, .02, z, 16, .04, 70, road, false);
+  }
+  for (const x of [-105, 0, 105]) {
+    box(x, .025, 250, 70, .05, 14, road, false);
   }
 
-  // Camera far plane for the full connected map.
-  if(typeof camera !== 'undefined'){
-    camera.far = 1800;
+  // One restrained landmark per major region.
+  landmark(-55, -45, 16, 18, 16);
+  landmark(35, -55, 22, 28, 18);
+  landmark(-48, 55, 18, 20, 18);
+  landmark(48, 55, 22, 30, 20);
+  landmark(-55, 150, 20, 24, 18);
+  landmark(45, 155, 24, 26, 20);
+  landmark(-50, 255, 22, 26, 20);
+  landmark(55, 260, 24, 30, 22);
+  landmark(0, 375, 30, 34, 24);
+  landmark(0, 510, 34, 40, 26);
+
+  // Simple open gates between regions.
+  for (const z of [45, 105, 205, 315, 440]) {
+    box(-11, 4, z, .7, 8, .7, stone);
+    box(11, 4, z, .7, 8, .7, stone);
+    box(0, 8, z, 22, .6, .7, roof);
+  }
+
+  if (typeof camera !== 'undefined') {
+    camera.far = Math.max(camera.far || 0, 1800);
     camera.updateProjectionMatrix();
   }
 
   window.ShadowlineWorld = {
     districts: 10,
     description: 'Ten connected story districts forming the large Shadowline world.',
-    bounds: { minX:-115, maxX:115, minZ:-90, maxZ:565 }
+    bounds: { minX: -115, maxX: 115, minZ: -90, maxZ: 565 }
   };
 
-  console.log('Shadowline Hunter large connected world loaded.');
+  console.log('Shadowline Hunter safe large connected world loaded.');
 })();
