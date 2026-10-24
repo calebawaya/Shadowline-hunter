@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shadowline Hunter</title>
+  <meta name="description" content="Shadowline Hunter - a stylized-realism gothic first-person action game.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main id="game">
+    <header class="hud top">
+      <div>
+        <h1>SHADOWLINE HUNTER</h1>
+        <p>MISSION 01 · THE FOG-CHOKED QUARTER</p>
+      </div>
+      <div class="objective">
+        <span>OBJECTIVE</span>
+        <strong>FIND THE MISSING AGENT</strong>
+      </div>
+    </header>
+
+    <section id="scene" aria-label="Game scene">
+      <div class="moon"></div>
+      <div class="sky"></div>
+      <div class="fog fog-back"></div>
+      <div class="buildings">
+        <div class="building b1"><i></i><i></i><i></i></div>
+        <div class="building b2"><i></i><i></i><i></i></div>
+        <div class="building b3"><i></i><i></i><i></i></div>
+      </div>
+      <div class="street"></div>
+      <div class="lamp lamp-left"><b></b></div>
+      <div class="lamp lamp-right"><b></b></div>
+      <div class="gate"></div>
+      <div class="enemy" id="enemy" title="Target"></div>
+      <div class="crosshair"><span></span></div>
+      <div id="message" class="message"></div>
+    </section>
+
+    <aside class="hud left-panel">
+      <div class="card"><span>HUNTER</span><strong>SHADOW-01</strong></div>
+      <div class="card"><span>HEALTH</span><div class="bar"><b id="healthBar"></b></div><strong id="health">100</strong></div>
+      <div class="card"><span>STAMINA</span><div class="bar"><b id="staminaBar"></b></div><strong id="stamina">100</strong></div>
+      <div class="card"><span>LIGHT</span><strong id="light">READY</strong></div>
+    </aside>
+
+    <aside class="hud weapon-panel">
+      <span>PRIMARY</span>
+      <h2>VIGIL CARBINE</h2>
+      <p>TACTICAL RIFLE · 5.56</p>
+      <div class="ammo"><strong id="ammo">30</strong><small>/ 120</small></div>
+      <button id="reload">RELOAD</button>
+    </aside>
+
+    <footer class="hud bottom">
+      <div><span>AREA</span><strong>VICTORIAN QUARTER</strong></div>
+      <div><span>THREATS</span><strong id="threats">1 DETECTED</strong></div>
+      <div><span>XP</span><strong id="xp">0</strong></div>
+      <button id="reset">RESET MISSION</button>
+    </footer>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
