@@ -1,10 +1,27 @@
 const canvas=document.getElementById('gameCanvas');
+
+// Safe Three.js startup: show a readable diagnostic instead of leaving a black page.
+if(!window.THREE){
+  const prompt=document.getElementById('prompt');
+  if(prompt)prompt.textContent='3D ENGINE FAILED TO LOAD · REFRESH THE PAGE';
+  throw new Error('Three.js did not load.');
+}
+
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x080b12);scene.fog=new THREE.FogExp2(0x10141d,0.018);
-const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,320);camera.position.set(0,1.7,16);
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,320);camera.position.set(0,1.7,16);camera.lookAt(0,1.7,-20);
+let renderer;
+try{
+  renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+}catch(error){
+  const prompt=document.getElementById('prompt');
+  if(prompt)prompt.textContent='3D GRAPHICS ARE UNAVAILABLE · ENABLE WEBGL AND REFRESH';
+  console.error('Shadowline Hunter renderer error:',error);
+  throw error;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight,false);renderer.setClearColor(0x080b12,1);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 const hemi=new THREE.HemisphereLight(0x68738b,0x090909,.48);scene.add(hemi);
-const moon=new THREE.DirectionalLight(0x9aa9d6,1.35);moon.position.set(-35,45,20);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);scene.add(moon);
+const moon=new THREE.DirectionalLight(0x9aa9d6,1.35);moon.position.set(-35,45,20);moon.castShadow=true;moon.shadow.mapSize.set(1024,1024);scene.add(moon);
 function box(x,y,z,w,h,d,color){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:.88,metalness:.05}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
 function cyl(x,y,z,r,h,color){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,12),new THREE.MeshStandardMaterial({color,roughness:.82}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
 function material(color,roughness=.8,metalness=0){return new THREE.MeshStandardMaterial({color,roughness,metalness})}
@@ -36,7 +53,7 @@ function setMission2Text(){titleEl.textContent='SHADOWLINE HUNTER';subtitleEl.te
 function buildCathedral(){if(level2Built)return;level2Built=true;const floor=box(0,.05,-120,30,.1,76,0x191a20);floor.receiveShadow=true;box(-14,8,-120,1,16,76,0x202129);box(14,8,-120,1,16,76,0x202129);box(0,8,-158,30,16,1,0x202129);for(const z of [-100,-112,-124,-136,-148]){for(const x of [-10,10]){cyl(x,6.5,z,.9,13,0x30323a);cyl(x,13.3,z,1.15,.5,0x292b33)}box(0,13.5,z,20,.5,.7,0x2a2c34)}for(const x of [-9,-3,3,9]){const glass=box(x,7,-158.55,2.5,9,.08,0x273b5d);glass.material.emissive=new THREE.Color(0x0c1730)}
 for(const x of [-10,-5,5,10]){const sideWin=box(x,6,-125,1.8,7,.08,0x283b5a);sideWin.material.emissive=new THREE.Color(0x0b162b)}
 box(0,5,-157,8,10,2,0x292b33);box(0,1.2,-151,7,.35,5,0x34363d);box(0,2,-148,5,1.2,2.5,0x3a3c44);const altarLight=new THREE.PointLight(0x8faeea,2.2,22);altarLight.position.set(0,5,-151);altarLight.castShadow=true;scene.add(altarLight);
-for(const x of [-7,7]){const lamp=cyl(x,3,-106,.12,6,0x17191e);const l=new THREE.PointLight(0xb9c9ff,1.1,10);l.position.set(x,5.8,-106);l.castShadow=true;scene.add(l)}
+for(const x of [-7,7]){cyl(x,3,-106,.12,6,0x17191e);const l=new THREE.PointLight(0xb9c9ff,1.1,10);l.position.set(x,5.8,-106);l.castShadow=true;scene.add(l)}
 const entranceLight=new THREE.SpotLight(0x93aee0,2.5,25,Math.PI/7,.45,1);entranceLight.position.set(0,10,-90);entranceLight.target.position.set(0,0,-105);entranceLight.castShadow=true;scene.add(entranceLight);scene.add(entranceLight.target);
 for(const z of [-104,-118,-132,-146]){box(-4,1.9,z,1.8,.35,7,0x2a2c32);box(4,1.9,z,1.8,.35,7,0x2a2c32)}
 target(0,-110,cathedralTargets);target(-6,-126,cathedralTargets);target(6,-138,cathedralTargets);target(0,-148,cathedralTargets);cathedralTargets.forEach(t=>t.visible=true)}
@@ -50,4 +67,4 @@ document.getElementById('reload').onclick=reload;document.getElementById('reset'
 const clock=new THREE.Clock();
 function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05);let speed=keys.shift&&stamina>0?9:5.2;if(!missionComplete){if(keys.shift&&stamina>0)stamina-=35*dt;else stamina=Math.min(100,stamina+18*dt);const dir=new THREE.Vector3();if(keys.w)dir.z-=1;if(keys.s)dir.z+=1;if(keys.a)dir.x-=1;if(keys.d)dir.x+=1;if(dir.lengthSq()){dir.normalize();dir.applyEuler(new THREE.Euler(0,camera.rotation.y,0));camera.position.addScaledVector(dir,speed*dt)}if(level===1){camera.position.x=Math.max(-9,Math.min(9,camera.position.x));camera.position.z=Math.max(-66,Math.min(20,camera.position.z));if(remaining()===0&&camera.position.z<-60){completeMission()}}else{camera.position.x=Math.max(-11,Math.min(11,camera.position.x));camera.position.z=Math.max(-154,Math.min(-87,camera.position.z));if(camera.position.z<-96&&remaining()===0&&camera.position.z<-146&&Math.abs(camera.position.x)<5){completeMission()}}
 const hidden=isHidden();for(const t of activeTargets()){if(!t.visible)continue;const dx=t.position.x-camera.position.x,dz=t.position.z-camera.position.z;const distance=Math.hypot(dx,dz);t.userData.lit=uv&&distance<28;t.userData.alert=!hidden&&distance<12;if(t.userData.lit)t.children.forEach(m=>{if(m.material)m.material.emissive=new THREE.Color(0x173b62)});else t.children.forEach(m=>{if(m.material)m.material.emissive=new THREE.Color(0x000000)})}const alert=activeTargets().some(t=>t.visible&&t.userData.alert);if(alert)prompt.textContent='WARNING · YOU ARE EXPOSED';else if(level===1&&remaining()===0)prompt.textContent='QUARTER SECURED · REACH THE EXTRACTION POINT';else if(level===2&&remaining()===0)prompt.textContent='NAVE SECURED · REACH THE ALTAR';else if(hidden)prompt.textContent='SHADOW COVER · YOU ARE CONCEALED';update()}renderer.render(scene,camera)}
-loop();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});update();
+loop();addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight,false)});update();
