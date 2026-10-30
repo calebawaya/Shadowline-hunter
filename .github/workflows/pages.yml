@@ -24,6 +24,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Validate static site files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f index.html
+          test -f style.css
+          test -f script.js
+          grep -q '<canvas id="gameCanvas"' index.html
+          grep -q 'script.js' index.html
+          grep -q 'style.css' index.html
+          echo "Static site validation passed."
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
